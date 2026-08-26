@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DoS module run configuration (paper Listing 1)",
+  "description": "JSON Schema used by dos_module.config to validate run.yaml before any run cell is executed. Field-level 'description' entries double as the documentation JSON cannot carry as comments; see configs/run.example.yaml for the human-annotated version.",
+  "type": "object",
+  "required": ["run", "target", "sampler", "benign_client", "vectors"],
+  "properties": {
+    "run": {
+      "type": "object",
+      "description": "Top-level run metadata and output location.",
+      "required": ["output_dir"],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "description": "Optional explicit run id; auto-generated (uuid4) if omitted."
+        },
+        "output_dir": {
+          "type": "string",
+          "description": "Directory where JSON/JSONL RunRecords (Table 6) are written."
+        },
+        "repetitions": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5,
+          "description": "n >= 5 repetitions per (vector x load x mitigation) cell, per implementation-plan.txt Phase 5."
+        },
+        "randomize_order": {
+          "type": "boolean",
+          "default": true,
+          "description": "Randomize run order across cells to avoid ordering confounds (Phase 5)."
+        },
+        "discard_warmup_runs": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1,
+          "description": "Number of leading warm-up repetitions to discard per cell before recording (Phase 5)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "description": "The MCP server under test. Localhost-only by design: host must be a loopback address; enforced both here and again in dos_module/config.py so a hand-edited config cannot bypass it.",
+      "required": ["sdk", "transport", "host"],
+      "properties": {
+        "sdk": {
+          "type": "string",
+          "enum": ["python", "typescript"],
+          "description": "Which official MCP SDK the target server is built on (modelcontextprotocol/python-sdk 'mcp' or modelcontextprotocol/typescript-sdk '@modelcontextprotocol/sdk')."
+        },
+        "transport": {
+          "type": "string",
+          "enum": ["stdio", "streamable_http", "sse"],
+          "description": "Transport in scope for this run."
+        },
+        "host": {
+          "type": "string",
+          "enum": ["127.0.0.1", "localhost", "::1"],
+          "description": "MUST be loopback. This harness never targets non-loopback addresses by default."
+        },
+        "port": {
+          "type": ["integer", "null"],
+          "description": "TCP port for streamable_http/sse targets; null for stdio."
+        },
+        "server_command": {
+          "type": ["array", "null"],
+          "items": {"type": "string"},
+          "description": "argv used to launch the target server subprocess for stdio transport, e.g. [\"python\", \"-m\", \"target_server\"]. Null when attaching to an already-running HTTP/SSE server."
+        },
+        "pid_discovery": {
+          "type": "string",
+          "enum": ["launched_by_harness", "attach_by_pid", "attach_by_name"],
+          "default": "launched_by_harness",
+          "description": "How the resource sampler finds the target process to attach psutil to."
+        }
+      },
+      "additionalProperties": false
+    },
+    "sampler": {
+      "type": "object",
+      "required": ["interval_ms"],
+      "properties": {
+        "interval_ms": {
+          "type": "number",
+          "minimum": 1,
+          "default": 100,
+          "description": "Fixed resource-sampling interval in milliseconds; must be held constant across all runs (Phase 3 FILL item). Paper default: 100ms."
+        },
+        "backend": {
+          "type": "string",
+          "enum": ["psutil", "cgroup"],
+          "default": "psutil",
+          "description": "psutil is used on this Windows measurement harness (no native cgroups). On a Linux deployment, swap to 'cgroup' (memory.peak/cpu.stat) for higher fidelity -- see measure/sampler.py docstring for exactly what is lost by using psutil. Never silently mix backends within one experiment; record the backend actually used in Table 5."
+        }
+      },
+      "additionalProperties": false
+    },
+    "benign_client": {
+      "type": "object",
+      "required": ["rate_hz", "baseline_duration_s"],
+      "properties": {
+        "rate_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Steady request cadence of the well-formed benign traffic whose degradation is measured (the harness's synthetic 'legitimate user')."
+        },
+        "request_timeout_s": {
+          "type": "number",
+          "default": 5.0,
+          "description": "A benign request slower than this counts as an error for error_rate purposes."
+        },
+        "baseline_duration_s": {
+          "type": "number",
+          "description": "Duration of the no-attack baseline window used to compute baseline_p95_ms, which the recovery-time definition below is relative to."
+        }
+      },
+      "additionalProperties": false
+    },
+    "vectors": {
+      "type": "array",
+      "description": "Which of the 7 in-scope DoS vectors to run this pass, and each one's load/concurrency sweep.",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "oversized_body",
+              "init_session_flood",
+              "unbounded_stdio_stream",
+              "deeply_nested_json",
+              "tool_invocation_flooding",
+              "slow_sse_slow_read",
+              "redos_input_validation"
+            ],
+            "description": "Must match a vector_id registered in dos_module/vectors/."
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Set false to keep the vector's config block in the file (for reference) without running it."
+          },
+          "load_levels": {
+            "type": "array",
+            "items": {"type": "number"},
+            "description": "Vector-specific load-magnitude sweep points (paper Table 3), e.g. payload-size multiplier, requests/sec, JSON nesting depth, concurrent slow connections. Unit is vector-specific -- document it per vector in the paper, not just here."
+          },
+          "concurrency": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 1},
+            "default": [1, 8, 32, 128],
+            "description": "Concurrency levels swept per Phase 5's default [1, 8, 32, 128]."
+          },
+          "mitigation": {
+            "type": "boolean",
+            "default": false,
+            "description": "false = attack sweep without the corresponding control; true = repeat the identical sweep with the vector's mitigation enabled on the target (Phase 4/5)."
+          },
+          "extra": {
+            "type": "object",
+            "description": "Vector-specific knobs not covered by the common fields above (e.g. nesting depth step size, regex pattern id under test). Passed through verbatim to AttackContext.extra.",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "description": "Precise definition of 'recovered' -- must be held constant across all runs (Phase 3 FILL item).",
+      "properties": {
+        "threshold_pct_of_baseline": {
+          "type": "number",
+          "default": 110,
+          "description": "Benign p95 latency must fall to/below this percent of its pre-attack baseline_p95_ms to count as recovered. 110 is this harness's placeholder default (i.e. within 10% of baseline); the paper's Section 4.2 must state its final chosen value explicitly, not inherit this default silently."
+        },
+        "max_wait_s": {
+          "type": "number",
+          "default": 60,
+          "description": "If latency has not recovered within this many seconds after attack stop, recovery_s is recorded as null (not 'infinite', not 0)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "amplification": {
+      "type": "object",
+      "description": "Cost units for amplification = target_cost / attacker_cost (Phase 3 FILL item). Both units must be fixed before running anything; see measure/results_writer.compute_amplification.",
+      "properties": {
+        "attacker_cost_unit": {
+          "type": "string",
+          "enum": ["bytes_sent", "requests_sent", "cpu_ms_attacker"],
+          "description": "Unit the attacker-side cost is measured in for this experiment."
+        },
+        "target_cost_unit": {
+          "type": "string",
+          "enum": ["cpu_ms_target", "rss_mb_delta_target"],
+          "description": "Unit the target-side cost is measured in for this experiment."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

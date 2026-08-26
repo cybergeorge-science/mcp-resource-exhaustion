@@ -1,0 +1,29 @@
+# P1.3 -- CODE-READY, EXECUTION PENDING A LINUX/cgroup HOST.
+#
+# Containerizes the TypeScript reference MCP servers (ts_http_server.mjs,
+# ts_stdio_server.mjs, ts_sse_server.mjs) on the SAME pinned SDK the paper
+# measured (@modelcontextprotocol/sdk==1.30.0), so a Linux cgroup-v2 re-run of
+# the anchors uses kernel-accounted memory.peak / cpu.stat (via
+# common/sampler_cgroup.py) instead of Windows psutil sampling. NOT built or
+# run for the paper's dataset -- the measurement host is Windows (no cgroups).
+#
+# Build (from repo root):
+#   docker build -f experiments/servers/Dockerfile.node -t mcpdos-node experiments
+#
+# Run one server with HARD cgroup caps (map to cgroup v2 memory.max / cpu.max,
+# the safe-run caps assumed in paper Sec. 4.6):
+#   docker run --rm --memory=1024m --cpus=2 -p 8816:8816 mcpdos-node \
+#       node servers/ts_http_server.mjs 8816
+FROM node:24-slim
+
+WORKDIR /app
+
+# pinned to the exact versions in experiments/package.json + package-lock.json
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY servers ./servers
+
+ENV NODE_ENV=production
+EXPOSE 8816
+CMD ["node", "servers/ts_http_server.mjs", "8816"]

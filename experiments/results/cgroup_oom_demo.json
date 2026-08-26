@@ -1,0 +1,20 @@
+{
+  "design": "P2.1 deliberate real-OOM demonstrations. NOT part of the replicated 10-rep dataset (results/real/*__cgroup.json); one-off runs specifically to obtain at least one real, measured time_to_oom_s, since it is null in every row of both the Windows/psutil and the replicated Linux/cgroup datasets. All rows is_synthetic:false.",
+  "v1_oversized_body": {
+    "note": "Python HTTP server (py_http_server.py) did NOT die under memory pressure across 3 attempts at increasing severity (10MB/8x@280m cap, 100MB/8x@250m, 300MB/16x@200m) -- peak_rss plateaued exactly at the container memory.max in every attempt, process survived, no kernel OOM-kill. Reported honestly as a real, non-null finding: this server's allocation pattern (Python bytes objects backed by malloc()) lets the OS return ENOMEM, which Python's stack turns into a catchable condition rather than an unresolvable page fault, so cgroup memory pressure here manifests as throttling/degradation, not a kill.",
+    "attempts": [
+      {"size_mb": 10, "concurrency": 8, "memory_cap_mb": 280, "peak_rss_mb": 280.0, "mean_cpu_pct": 2.68, "server_exit_code": null, "server_oom_killed": false, "time_to_oom_s": null},
+      {"size_mb": 100, "concurrency": 8, "memory_cap_mb": 250, "peak_rss_mb": 250.0, "mean_cpu_pct": 1.78, "server_exit_code": null, "server_oom_killed": false, "time_to_oom_s": null},
+      {"size_mb": 300, "concurrency": 16, "memory_cap_mb": 200, "peak_rss_mb": 200.0, "mean_cpu_pct": 1.17, "server_exit_code": null, "server_oom_killed": false, "time_to_oom_s": null}
+    ]
+  },
+  "v3_unbounded_stdio": {
+    "note": "Node/TypeScript stdio server (ts_stdio_server.mjs) WAS reliably killed by the kernel's cgroup-v2 OOM killer: 3/3 runs at 500MB unbounded-line payload against a 150MB memory.max cap ended in SIGKILL (exit code -9) within ~0.07-0.13s of the attack starting. V8's heap growth touches newly-committed pages for the first time as the incoming stream is concatenated; a first-touch page fault cannot be answered with an error code the way a Python malloc() call can, so when the kernel can't reclaim enough to satisfy it, it must kill a process in the cgroup -- and it kills the memory-hogging Node server, not the (separate, tiny) Python driver process, so the measurement survives to record it.",
+    "attempts": [
+      {"size_mb": 500, "memory_cap_mb": 150, "peak_rss_mb": 150.0, "mean_cpu_pct": 27.93, "server_exit_code": -9, "server_oom_killed": true, "time_to_oom_s": 0.134},
+      {"size_mb": 500, "memory_cap_mb": 150, "peak_rss_mb": 150.0, "mean_cpu_pct": 20.60, "server_exit_code": -9, "server_oom_killed": true, "time_to_oom_s": 0.066},
+      {"size_mb": 500, "memory_cap_mb": 150, "peak_rss_mb": 150.0, "mean_cpu_pct": 23.38, "server_exit_code": -9, "server_oom_killed": true, "time_to_oom_s": 0.078}
+    ],
+    "mean_time_to_oom_s": 0.093
+  }
+}

@@ -1,0 +1,45 @@
+# P2.1 -- Linux cgroup-v2 combined runtime image.
+#
+# The real smoke-test drivers (experiments/vectors/*/run_smoke.py) are always
+# Python, but three vectors (v3, v5, v6) spawn a Node/TypeScript reference
+# server as a subprocess of that same driver, and every driver's amplification
+# helper reaches into harness/measure/amplification.py. Dockerfile.python and
+# Dockerfile.node (single-runtime) can't run those drivers standalone, so this
+# image combines the pinned Python 3.14 + mcp==1.27.0 runtime with the pinned
+# Node 24 + @modelcontextprotocol/sdk==1.30.0 runtime in one place, so that the
+# whole driver (server subprocess + sampler + attack) runs inside one cgroup
+# v2 container and common/sampler_cgroup.make_sampler() activates for real.
+#
+# Build (from repo root, so both experiments/ and harness/ are in context):
+#   docker build -f experiments/servers/Dockerfile.combined -t mcpdos-combined .
+#
+# Run one vector's replicated smoke test under a cgroup v2 memory/cpu cap:
+#   docker run --rm --memory=512m --cpus=2 \
+#       -v "$(pwd)/experiments/results:/app/experiments/results" \
+#       mcpdos-combined python vectors/v7_redos/run_smoke.py --reps 10 --tag cgroup
+
+FROM node:24-slim AS nodejs
+
+FROM python:3.14-slim
+WORKDIR /app
+
+# Node runtime lifted from the pinned node:24-slim image (npm ci needs the
+# npm CLI shipped inside node_modules/npm, not just the node binary).
+COPY --from=nodejs /usr/local/bin/node /usr/local/bin/node
+COPY --from=nodejs /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+COPY experiments/requirements.txt experiments/requirements.txt
+RUN pip install --no-cache-dir -r experiments/requirements.txt
+
+COPY experiments/package.json experiments/package-lock.json experiments/
+RUN cd experiments && npm ci --omit=dev
+
+COPY experiments/common experiments/common
+COPY experiments/servers experiments/servers
+COPY experiments/vectors experiments/vectors
+COPY harness/measure harness/measure
+
+WORKDIR /app/experiments
+ENV PYTHONUNBUFFERED=1

@@ -1,0 +1,36 @@
+# P1.3 -- CODE-READY, EXECUTION PENDING A LINUX/cgroup HOST.
+#
+# Containerizes the Python reference MCP servers (py_http_server.py,
+# py_stdio_server.py) on the SAME pinned SDK the paper measured (mcp==1.27.0),
+# so a Linux cgroup-v2 re-run of the anchors uses kernel-accounted
+# memory.peak / cpu.stat (via common/sampler_cgroup.py) instead of Windows
+# psutil sampling. NOT built or run for the paper's dataset -- the measurement
+# host is Windows (no cgroups).
+#
+# Build (from repo root):
+#   docker build -f experiments/servers/Dockerfile.python -t mcpdos-py experiments
+#
+# Run one server with HARD cgroup caps (these map to cgroup v2
+# memory.max / cpu.max, the safe-run caps assumed in paper Sec. 4.6):
+#   docker run --rm --memory=1024m --cpus=2 -p 8811:8811 mcpdos-py \
+#       python servers/py_http_server.py 8811
+#
+# Inside such a container, /sys/fs/cgroup is a v2 hierarchy, so
+# common/sampler_cgroup.make_sampler() activates the CgroupSampler
+# automatically.
+FROM python:3.14-slim
+
+WORKDIR /app
+
+# pinned to the exact versions in experiments/requirements.txt (paper Table 5)
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY common ./common
+COPY servers ./servers
+COPY vectors ./vectors
+
+ENV PYTHONUNBUFFERED=1
+# default: HTTP server on 8811; override the CMD to run a different server
+EXPOSE 8811
+CMD ["python", "servers/py_http_server.py", "8811"]

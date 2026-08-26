@@ -1,0 +1,394 @@
+[
+  {
+    "vector": "v1_oversized_body",
+    "load_level": 4,
+    "concurrency": 8,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 551.569,
+      "predicted": 620.134,
+      "residual_pct": 12.4
+    },
+    "mean_cpu_pct": {
+      "measured": 10.619,
+      "predicted": 12.1,
+      "residual_pct": 13.9
+    },
+    "lat_p95_ms": {
+      "measured": 9.309999999999999,
+      "predicted": 13.91,
+      "residual_pct": 49.4
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.12,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v1_oversized_body",
+    "load_level": 4,
+    "concurrency": 8,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 71.779,
+      "predicted": 70.856,
+      "residual_pct": -1.3
+    },
+    "mean_cpu_pct": {
+      "measured": 8.182,
+      "predicted": 20.642,
+      "residual_pct": 152.3
+    },
+    "lat_p95_ms": {
+      "measured": 14.830000000000002,
+      "predicted": 13.925999999999998,
+      "residual_pct": -6.1
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.03,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v2_init_flood",
+    "load_level": 4,
+    "concurrency": 8,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 92.277,
+      "predicted": 101.474,
+      "residual_pct": 10.0
+    },
+    "mean_cpu_pct": {
+      "measured": 13.713,
+      "predicted": 45.012,
+      "residual_pct": 228.2
+    },
+    "lat_p95_ms": {
+      "measured": 13.909,
+      "predicted": 14.136000000000001,
+      "residual_pct": 1.6
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.159,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v2_init_flood",
+    "load_level": 4,
+    "concurrency": 8,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 69.66900000000001,
+      "predicted": 69.072,
+      "residual_pct": -0.9
+    },
+    "mean_cpu_pct": {
+      "measured": 10.311,
+      "predicted": 6.066000000000001,
+      "residual_pct": -41.2
+    },
+    "lat_p95_ms": {
+      "measured": 8.907,
+      "predicted": 6.720000000000001,
+      "residual_pct": -24.6
+    },
+    "error_rate": {
+      "measured": 1.0,
+      "predicted": 1.0,
+      "residual_pct": 0.0
+    }
+  },
+  {
+    "vector": "v3_unbounded_stdio",
+    "load_level": 4,
+    "concurrency": 1,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 391.134,
+      "predicted": 695.362,
+      "residual_pct": 77.8
+    },
+    "mean_cpu_pct": {
+      "measured": 58.819,
+      "predicted": 32.424,
+      "residual_pct": -44.9
+    },
+    "lat_p95_ms": {
+      "measured": 2408.984,
+      "predicted": 3504.796,
+      "residual_pct": 45.5
+    },
+    "error_rate": {
+      "measured": 0.2,
+      "predicted": 0.359,
+      "residual_pct": 79.5
+    }
+  },
+  {
+    "vector": "v3_unbounded_stdio",
+    "load_level": 4,
+    "concurrency": 1,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 63.575,
+      "predicted": 70.0,
+      "residual_pct": 10.1
+    },
+    "mean_cpu_pct": {
+      "measured": 0.0,
+      "predicted": 0.286,
+      "residual_pct": null
+    },
+    "lat_p95_ms": {
+      "measured": 0.0,
+      "predicted": 0.05,
+      "residual_pct": null
+    },
+    "error_rate": {
+      "measured": 1.0,
+      "predicted": 1.0,
+      "residual_pct": 0.0
+    }
+  },
+  {
+    "vector": "v4_deep_json",
+    "load_level": 4,
+    "concurrency": 8,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 75.735,
+      "predicted": 80.202,
+      "residual_pct": 5.9
+    },
+    "mean_cpu_pct": {
+      "measured": 1.6830000000000003,
+      "predicted": 8.386,
+      "residual_pct": 398.3
+    },
+    "lat_p95_ms": {
+      "measured": 13.319999999999999,
+      "predicted": 23.578,
+      "residual_pct": 77.0
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.279,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v4_deep_json",
+    "load_level": 4,
+    "concurrency": 8,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 69.684,
+      "predicted": 69.442,
+      "residual_pct": -0.3
+    },
+    "mean_cpu_pct": {
+      "measured": 2.34,
+      "predicted": 2.7119999999999997,
+      "residual_pct": 15.9
+    },
+    "lat_p95_ms": {
+      "measured": 11.763000000000002,
+      "predicted": 14.504,
+      "residual_pct": 23.3
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.07,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v5_tool_flood",
+    "load_level": 4,
+    "concurrency": 1,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 114.545,
+      "predicted": 129.38,
+      "residual_pct": 13.0
+    },
+    "mean_cpu_pct": {
+      "measured": 8.287,
+      "predicted": 7.6819999999999995,
+      "residual_pct": -7.3
+    },
+    "lat_p95_ms": {
+      "measured": 13.947,
+      "predicted": 11.797999999999998,
+      "residual_pct": -15.4
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.159,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v5_tool_flood",
+    "load_level": 4,
+    "concurrency": 1,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 80.181,
+      "predicted": 78.816,
+      "residual_pct": -1.7
+    },
+    "mean_cpu_pct": {
+      "measured": 6.221,
+      "predicted": 5.962000000000001,
+      "residual_pct": -4.2
+    },
+    "lat_p95_ms": {
+      "measured": 7.07,
+      "predicted": 9.518,
+      "residual_pct": 34.6
+    },
+    "error_rate": {
+      "measured": 0.5831,
+      "predicted": 0.873,
+      "residual_pct": 49.7
+    }
+  },
+  {
+    "vector": "v6_slow_sse",
+    "load_level": 4,
+    "concurrency": 1,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 105.499,
+      "predicted": 147.712,
+      "residual_pct": 40.0
+    },
+    "mean_cpu_pct": {
+      "measured": 1.547,
+      "predicted": 1.684,
+      "residual_pct": 8.9
+    },
+    "lat_p95_ms": {
+      "measured": 21.901999999999997,
+      "predicted": 29.939999999999998,
+      "residual_pct": 36.7
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.12,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v6_slow_sse",
+    "load_level": 4,
+    "concurrency": 1,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 73.995,
+      "predicted": 75.068,
+      "residual_pct": 1.5
+    },
+    "mean_cpu_pct": {
+      "measured": 0.779,
+      "predicted": 2.1079999999999997,
+      "residual_pct": 170.6
+    },
+    "lat_p95_ms": {
+      "measured": 17.028,
+      "predicted": 17.822,
+      "residual_pct": 4.7
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.03,
+      "residual_pct": null
+    }
+  },
+  {
+    "vector": "v7_redos",
+    "load_level": 5,
+    "concurrency": 1,
+    "mitigation": false,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 67.85499999999999,
+      "predicted": 67.15599999999999,
+      "residual_pct": -1.0
+    },
+    "mean_cpu_pct": {
+      "measured": 93.884,
+      "predicted": 68.53399999999999,
+      "residual_pct": -27.0
+    },
+    "lat_p95_ms": {
+      "measured": 3013.1279999999997,
+      "predicted": 3.982,
+      "residual_pct": -99.9
+    },
+    "error_rate": {
+      "measured": 1.0,
+      "predicted": 0.025,
+      "residual_pct": -97.5
+    }
+  },
+  {
+    "vector": "v7_redos",
+    "load_level": 5,
+    "concurrency": 1,
+    "mitigation": true,
+    "n_measured": 10,
+    "n_predicted": 5,
+    "peak_rss_mb": {
+      "measured": 67.8,
+      "predicted": 67.134,
+      "residual_pct": -1.0
+    },
+    "mean_cpu_pct": {
+      "measured": 1.67,
+      "predicted": 0.9800000000000001,
+      "residual_pct": -41.3
+    },
+    "lat_p95_ms": {
+      "measured": 2.606,
+      "predicted": 2.32,
+      "residual_pct": -11.0
+    },
+    "error_rate": {
+      "measured": 0.0,
+      "predicted": 0.006,
+      "residual_pct": null
+    }
+  }
+]

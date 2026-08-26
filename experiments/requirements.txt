@@ -1,0 +1,14 @@
+# Pinned exactly to the versions actually used to produce every real
+# measurement and figure in this paper (paper Section 4.1 / Table 5,
+# experiments/REPORT.md Section 0-1). Added by the review pass: no pinned
+# Python dependency file existed anywhere in this project before (only
+# experiments/package.json + package-lock.json covered the Node/TypeScript
+# side) -- see reviews/gaps_review.md "Fixed now".
+#
+# Python 3.14.3.
+mcp==1.27.0
+psutil==7.2.2
+httpx==0.28.1
+matplotlib==3.11.0
+jsonschema==4.26.0
+pytest==8.3.3

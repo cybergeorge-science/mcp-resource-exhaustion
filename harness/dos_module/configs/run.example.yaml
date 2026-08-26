@@ -1,0 +1,101 @@
+# =============================================================================
+# DoS module run configuration -- paper "Listing 1" equivalent.
+#
+# This file is validated against configs/config.schema.json (JSON Schema)
+# before any run cell executes; see dos_module/config.py. Comments below
+# explain each field inline; the schema carries the same explanations as
+# "description" keys for tooling that can't read YAML comments.
+#
+# ASSUMED FORMAT: no equivalent config file exists in the real MCPSecBench
+# repository (github.com/AIS2Lab/MCPSecBench) -- it has no config-driven run
+# selection at all (see harness/REPORT.md). This is a clean design, not a
+# reproduction of an existing upstream file.
+# =============================================================================
+
+run:
+  run_id: "demo-run-0001"      # optional; auto-generated (uuid4) if omitted
+  output_dir: "./results"       # where JSON/JSONL RunRecords (Table 6) land
+  repetitions: 5                 # n >= 5 reps per (vector x load x mitigation) cell (Phase 5)
+  randomize_order: true          # randomize cell execution order to avoid ordering confounds
+  discard_warmup_runs: 1         # drop this many leading warm-up reps per cell before recording
+
+target:
+  sdk: "python"                  # "python" (pip "mcp") or "typescript" (npm "@modelcontextprotocol/sdk")
+  transport: "streamable_http"   # "stdio" | "streamable_http" | "sse"
+  host: "127.0.0.1"              # MUST be loopback -- localhost-only design, enforced in code too
+  port: 8765                     # ignored for stdio
+  server_command: null           # e.g. ["python", "-m", "target_server"] for stdio; null if attaching to a running HTTP/SSE server
+  pid_discovery: "launched_by_harness"  # "launched_by_harness" | "attach_by_pid" | "attach_by_name"
+
+sampler:
+  interval_ms: 100                # fixed sampling interval; MUST stay constant across every run in the experiment (Phase 3)
+  backend: "psutil"                # "psutil" on this Windows dev harness; swap to "cgroup" on a Linux deployment (see measure/sampler.py docstring for exactly what fidelity is lost by NOT doing this)
+
+benign_client:
+  rate_hz: 10                      # steady cadence of well-formed "legitimate" requests
+  request_timeout_s: 5.0           # a benign request slower than this counts as an error
+  baseline_duration_s: 30          # length of the no-attack baseline window (feeds baseline_p95_ms for recovery)
+
+vectors:
+  - id: "oversized_body"
+    enabled: true
+    load_levels: [1, 2, 4, 8, 16]    # payload-size multiplier over the target's documented max, vector-specific unit
+    concurrency: [1, 8, 32, 128]
+    mitigation: false                 # run again with mitigation: true after enabling the body-size cap on the target
+
+  - id: "init_session_flood"
+    enabled: true
+    load_levels: [10, 50, 100, 500]   # new sessions/sec offered
+    concurrency: [1, 8, 32, 128]
+    mitigation: false
+
+  - id: "unbounded_stdio_stream"
+    enabled: false                    # only meaningful for transport: stdio; disabled in this HTTP example
+    load_levels: [100000, 1000000, 10000000]   # bytes in a single unterminated frame
+    concurrency: [1]
+    mitigation: false
+
+  - id: "deeply_nested_json"
+    enabled: true
+    load_levels: [100, 1000, 10000, 100000]   # nesting depth
+    concurrency: [1, 8]
+    mitigation: false
+
+  - id: "tool_invocation_flooding"
+    enabled: true
+    load_levels: [10, 50, 100, 500]   # tool calls/sec offered
+    concurrency: [1, 8, 32, 128]
+    mitigation: false
+
+  - id: "slow_sse_slow_read"
+    enabled: true
+    load_levels: [1, 8, 32, 128]      # number of concurrent trickle connections held open
+    concurrency: [1]
+    mitigation: false
+    extra:
+      bytes_per_interval: 1            # Slowloris-style trickle rate, vector-specific knob
+      interval_s: 10
+
+  - id: "redos_input_validation"
+    enabled: true
+    load_levels: [10, 20, 30, 40]     # input length parameter driving backtracking blowup
+    concurrency: [1]
+    mitigation: false
+    extra:
+      target_field: "tool_argument_string"
+
+# Recovery definition -- must be held constant across all runs (Phase 3 FILL item).
+# "Recovered" = benign p95 latency has fallen to <= threshold_pct_of_baseline percent
+# of baseline_p95_ms and stays there. 110 is this harness's PLACEHOLDER default; the
+# paper must state its actually-chosen value explicitly rather than inherit this
+# silently.
+recovery:
+  threshold_pct_of_baseline: 110
+  max_wait_s: 60
+
+# Amplification factor = target_cost / attacker_cost (Phase 3 FILL item).
+# Both units are fixed here so every vector's amplification numbers are
+# comparable; see measure/results_writer.compute_amplification for the formula.
+amplification:
+  attacker_cost_unit: "bytes_sent"
+  target_cost_unit: "cpu_ms_target"

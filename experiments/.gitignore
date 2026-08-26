@@ -1,0 +1,11 @@
+# Reinstallable / regenerated
+experiments/node_modules/
+**/__pycache__/
+**/.pytest_cache/
+*.pyc
+.DS_Store
+# Validation-only extras (not needed for repro)
+.venv/
+
+# Word lock files
+~$*

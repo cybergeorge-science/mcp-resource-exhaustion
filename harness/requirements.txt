@@ -1,0 +1,11 @@
+# Pinned exactly to the versions this project's harness (measure/, dos_module/,
+# tests/) was built and tested against (paper Section 4.1 / Table 5 environment).
+# Added by the review pass: no pinned dependency file existed before, which is
+# itself a reproducibility gap for a paper that reports specific measured
+# numbers -- see reviews/gaps_review.md "Fixed now".
+#
+# Python 3.14.3 (paper Table 5).
+psutil==7.2.2
+jsonschema==4.26.0
+PyYAML==6.0.2
+pytest==8.3.3
