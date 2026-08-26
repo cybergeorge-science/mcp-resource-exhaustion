@@ -29,3 +29,8 @@ experiments/make_appendixB.py
 experiments/make_table9.py
 *.docx
 *.doc
+
+# Session handoff — never publish
+HADOFF.md
+handoff.md
+HANDOFF.md
