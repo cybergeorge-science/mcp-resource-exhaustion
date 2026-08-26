@@ -1,48 +1,41 @@
-# Denial of Service as a First-Class MCP Security Property
+# MCP resource-exhaustion experiments
 
-Threat model, CWE-grounded taxonomy, standalone measurement harness, and
-empirical evaluation of seven denial-of-service (DoS) vectors against the two
-official Model Context Protocol (MCP) SDKs (Python `mcp`, TypeScript
-`@modelcontextprotocol/sdk`).
+Measurement harness and loopback experiments for seven Model Context Protocol
+(MCP) resource-exhaustion vectors against the official Python SDK (`mcp`) and
+TypeScript SDK (`@modelcontextprotocol/sdk`).
 
-This repository is the reproducibility artifact for the paper
-(`paper_draft.md`, built to `mcp-dos-paper-FILLED.docx` via `build_docx.py`).
+This repository is the **experiment package** (code, servers, results). It is
+not a paper repository.
 
-> **Safety / ethics.** Every attack in this project runs *only* against
-> reference MCP servers this code starts itself, bound to `127.0.0.1`.
-> Each server process runs under a hard RSS kill-switch and each attack under a
-> wall-clock timeout (`experiments/common/killswitch.py`). Do not point any
-> driver at a host you do not own. See paper Section 8 (Ethics) and
-> `disclosures/` for the responsible-disclosure posture.
+> **Safety.** Every attack runs only against reference MCP servers this code
+> starts itself, bound to `127.0.0.1`. Each server process has a hard RSS
+> kill-switch and each attack a wall-clock timeout
+> (`experiments/common/killswitch.py`). Do not point any driver at a host you
+> do not own.
 
 ## Layout
 
 ```
-paper_draft.md              source of truth for the paper (edit here, then rebuild)
-build_docx.py               paper_draft.md -> mcp-dos-paper-FILLED.docx
-harness/                    standalone measurement harness (AttackModule interface,
-                            locked run-record schema, sampler, benign client, tests)
+harness/                    measurement helpers (schema, sampler, benign client, tests)
 experiments/                reference servers, vector drivers, results, figures
-  common/                   sampler, schema, killswitch, recovery, amplification,
-                            synth_model, stats (P1.1), reps (P1.1)
-  servers/                  py_* / ts_* reference MCP servers (real SDKs, no stubs)
+  common/                   sampler, schema, killswitch, recovery, stats
+  servers/                  py_* / ts_* servers (real SDKs, no stubs)
   vectors/v1..v7_*/         attack + run_smoke driver per vector
-  results/real/*.json       replicated real measurements (is_synthetic:false)
-  results/synthetic/*.json  labeled synthetic full-sweep (is_synthetic:true)
-  results/all_results.json  combined dataset, validated against the locked schema
-  figures/                  Figures 2-4 + make_figures.py
-disclosures/                drafted (not filed) private-disclosure reports
-reviews/                    review + improvement-plan documents
+  run_replication.py        replicated OFF/ON smoke tests
+  run_paired.py             within-session attack vs no-attack controls
+  run_practical_flood.py    32-worker, 10 s concurrent-probe flood (v2, v5)
+  results/real/*.json       real measurements (is_synthetic: false)
+  results/synthetic/*.json  labeled model rows (is_synthetic: true; not evidence)
+  figures/                  plots regenerated from results
 ```
 
 ## Requirements
 
-- Python 3.14 (`experiments/requirements.txt`, `harness/requirements.txt` are
-  exact-pinned to the versions used: `mcp==1.27.0`, `psutil==7.2.2`,
-  `httpx==0.28.1`, `matplotlib==3.11.0`, `jsonschema==4.26.0`, `PyYAML==6.0.2`,
-  `pytest==8.3.3`, `numpy`).
-- Node.js 24 with `@modelcontextprotocol/sdk==1.30.0` (`experiments/package.json`,
-  exact-pinned; `npm install` under `experiments/`).
+- Python 3.12+ (`experiments/requirements.txt`, `harness/requirements.txt`):
+  `mcp==1.27.0`, `psutil==7.2.2`, `httpx==0.28.1`, `jsonschema==4.26.0`,
+  `pytest==8.3.3`.
+- Node.js 24 with `@modelcontextprotocol/sdk==1.30.0`
+  (`experiments/package.json`; `npm install` under `experiments/`).
 
 ```bash
 pip install -r experiments/requirements.txt -r harness/requirements.txt
@@ -53,49 +46,40 @@ cd experiments && npm install
 
 ```bash
 # 1. tests
-cd harness && python -m pytest -q          # 37 tests
-cd ../experiments && python -m pytest -q    # regression + stats tests
+cd harness && python -m pytest -q
+cd ../experiments && python -m pytest -q
 
-# 2. real, replicated measurements (P1.1: mean +/- 95% CI over >=5 reps/cell)
-python run_replication.py --reps 10                 # primary anchor, all 7 vectors
-python run_replication.py --reps 10 --anchor2       # second load point (P1.2)
+# 2. replicated measurements (mean +/- 95% CI, n>=5, default 10)
+python run_replication.py --reps 10
+python run_replication.py --reps 10 --anchor2
 
-# 3. per-cell statistics + Mann-Whitney U (OFF vs ON)
-python analyze_replication.py                        # -> results/stats_summary.json
+# 3. OFF vs ON stats (Mann-Whitney U)
+python analyze_replication.py
 
-# 4. synthetic full sweep (labeled is_synthetic:true) + combined dataset
-python generate_synthetic.py
+# 4. within-session no-attack controls
+python run_paired.py --reps 10
+python analyze_control.py
 
-# 5. validate the whole dataset against the locked schema (zero errors)
-python validate_dataset.py
-
-# 6. figures
-python figures/make_figures.py
-
-# 7. practical high-concurrency flood (Table 3c; v2 and v5, C=32, 10 s,
-#    concurrent benign probe; does not overwrite the committed anchors)
+# 5. practical high-concurrency flood (v2, v5; C=32; 10 s; concurrent benign probe)
 python run_practical_flood.py --reps 8
 python analyze_practical.py
+
+# 6. optional: labeled synthetic grid (illustration only)
+python generate_synthetic.py
+python validate_dataset.py
+python figures/make_figures.py
 ```
 
-Each `run_smoke.py` accepts `--reps N` (default 10, minimum 5), `--warmup`,
-`--cooldown`, `--seed`, and `--tag`; it starts a fresh server per run,
-randomizes mitigation OFF/ON order, discards a warm-up rep, and cools down
-between runs.
+Each `run_smoke.py` accepts `--reps N` (default 10), `--warmup`, `--cooldown`,
+`--seed`, and `--tag`. It starts a fresh server per run, randomizes mitigation
+OFF/ON order, discards a warm-up rep, and cools down between runs.
 
 ## Data honesty
 
 Every result row carries `is_synthetic`. Real rows (`false`) are direct
-measurements; synthetic rows (`true`) are a documented power-law extrapolation
-anchored to a real row (`anchor_run_id`). No table or figure blends the two
-without a label. See paper Section 4.4 and Section 6.
-
-## Artifact status
-
-Code and data exist and run locally. Public archival + DOI are **prepared but
-pending** (see `CITATION.cff` and paper Appendix A): the repository is ready to
-push and to mint a Zenodo DOI against the tagged commit, but has not yet been
-published externally.
+measurements. Synthetic rows (`true`) are a documented power-law extrapolation
+anchored to a real row (`anchor_run_id`). Do not treat synthetic rows as
+observations.
 
 ## License
 

@@ -1,33 +1,24 @@
 cff-version: 1.2.0
-message: "If you use this artifact, please cite the paper and the software."
-title: "Denial of Service as a First-Class MCP Security Property: A Threat Model, Measurement Harness, and Empirical Evaluation"
+message: "If you use this experiment package, please cite it."
+title: "MCP resource-exhaustion measurement harness and experiment results"
 abstract: >-
-  A self-contained threat model, CWE-grounded taxonomy of seven Model Context
-  Protocol (MCP) denial-of-service vectors, a reproducible measurement harness,
-  and an empirical evaluation combining replicated real smoke-test measurements
-  (mean +/- 95% CI) with an explicitly labeled synthetic full-sweep
-  extrapolation, against the official Python and TypeScript MCP SDKs.
+  Reproducible loopback experiments for seven Model Context Protocol (MCP)
+  resource-exhaustion vectors against the official Python and TypeScript SDKs,
+  including replicated smoke tests and a practical high-concurrency flood
+  with a concurrent benign client.
 type: software
 authors:
-  - name: "The MCP-DoS-Paper Authors"
+  - family-names: Iashvili
+    given-names: Giorgi
+  - family-names: Iavich
+    given-names: Maksim
 version: "1.0.0"
-date-released: "2026-08-16"
+date-released: "2026-08-26"
 license: MIT
 keywords:
   - "Model Context Protocol"
   - "MCP"
   - "denial of service"
-  - "availability"
   - "resource exhaustion"
-  - "ReDoS"
   - "security measurement"
 repository-code: "https://github.com/cybergeorge-science/mcp-resource-exhaustion"
-identifiers:
-  - type: doi
-    value: "10.0000/zenodo.PENDING"      # ready to archive, DOI pending
-    description: "Zenodo archive of the tagged commit (pending upload)."
-references:
-  - type: report
-    title: "Experiment Report (experiments/REPORT.md)"
-    authors:
-      - name: "The MCP-DoS-Paper Authors"

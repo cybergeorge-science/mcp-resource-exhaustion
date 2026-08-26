@@ -17,6 +17,15 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Local extracts / backups (not part of the artifact)
+# Local extracts / backups
 paper_extracted.txt
 mcp-security-paper.translated-backup.docx
+
+# Manuscript and paper-only helpers (kept locally, not in this repo)
+mcp-security-paper.docx
+paper_8page.md
+build_8page_docx.py
+experiments/make_appendixB.py
+experiments/make_table9.py
+*.docx
+*.doc
